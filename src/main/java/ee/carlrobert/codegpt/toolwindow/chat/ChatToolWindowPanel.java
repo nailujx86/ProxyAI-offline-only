@@ -2,11 +2,7 @@ package ee.carlrobert.codegpt.toolwindow.chat;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultCompactActionGroup;
-import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -25,20 +21,16 @@ import ee.carlrobert.codegpt.actions.toolwindow.OpenInEditorAction;
 import ee.carlrobert.codegpt.conversations.Conversation;
 import ee.carlrobert.codegpt.conversations.ConversationService;
 import ee.carlrobert.codegpt.conversations.ConversationsState;
-import ee.carlrobert.codegpt.settings.service.FeatureType;
-import ee.carlrobert.codegpt.settings.service.ModelSelectionService;
 import ee.carlrobert.codegpt.settings.prompts.PersonaPromptDetailsState;
 import ee.carlrobert.codegpt.settings.prompts.PromptsConfigurable;
 import ee.carlrobert.codegpt.settings.prompts.PromptsSettings;
 import ee.carlrobert.codegpt.settings.service.ProviderChangeNotifier;
-import ee.carlrobert.codegpt.settings.service.ServiceType;
-import ee.carlrobert.codegpt.settings.service.codegpt.CodeGPTUserDetailsNotifier;
 import ee.carlrobert.codegpt.toolwindow.chat.ui.ToolWindowFooterNotification;
 import ee.carlrobert.codegpt.toolwindow.chat.ui.textarea.AttachImageNotifier;
-import ee.carlrobert.llm.client.codegpt.PricingPlan;
-import java.nio.file.Path;
-import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import java.nio.file.Path;
 
 public class ChatToolWindowPanel extends SimpleToolWindowPanel {
 
@@ -48,12 +40,12 @@ public class ChatToolWindowPanel extends SimpleToolWindowPanel {
   private final Project project;
 
   public ChatToolWindowPanel(
-      @NotNull Project project,
-      @NotNull Disposable parentDisposable) {
+          @NotNull Project project,
+          @NotNull Disposable parentDisposable) {
     super(true);
     this.project = project;
     imageFileAttachmentNotification = new ToolWindowFooterNotification(() ->
-        project.putUserData(CodeGPTKeys.IMAGE_ATTACHMENT_FILE_PATH, ""));
+            project.putUserData(CodeGPTKeys.IMAGE_ATTACHMENT_FILE_PATH, ""));
     upgradePlanLink = new ActionLink("Upgrade your plan", event -> {
       BrowserUtil.browse("https://tryproxy.io/#pricing");
     });
@@ -82,28 +74,13 @@ public class ChatToolWindowPanel extends SimpleToolWindowPanel {
   private void initializeEventListeners(Project project) {
     var messageBusConnection = project.getMessageBus().connect();
     messageBusConnection.subscribe(AttachImageNotifier.IMAGE_ATTACHMENT_FILE_PATH_TOPIC,
-        (AttachImageNotifier) filePath -> imageFileAttachmentNotification.show(
-            Path.of(filePath).getFileName().toString(),
-            "File path: " + filePath));
+            (AttachImageNotifier) filePath -> imageFileAttachmentNotification.show(
+                    Path.of(filePath).getFileName().toString(),
+                    "File path: " + filePath));
     messageBusConnection.subscribe(ProviderChangeNotifier.getTOPIC(),
-        (ProviderChangeNotifier) provider -> {
-          if (provider == ServiceType.PROXYAI) {
-            var userDetails = CodeGPTKeys.CODEGPT_USER_DETAILS.get(project);
-            upgradePlanLink.setVisible(
-                userDetails != null && userDetails.getPricingPlan() != PricingPlan.INDIVIDUAL);
-          } else {
-            upgradePlanLink.setVisible(false);
-          }
-        });
-    messageBusConnection.subscribe(CodeGPTUserDetailsNotifier.getCODEGPT_USER_DETAILS_TOPIC(),
-        (CodeGPTUserDetailsNotifier) userDetails -> {
-          if (userDetails != null) {
-            var provider = ModelSelectionService.getInstance()
-                .getServiceForFeature(FeatureType.CHAT);
-            upgradePlanLink.setVisible(provider == ServiceType.PROXYAI
-                && userDetails.getPricingPlan() != PricingPlan.INDIVIDUAL);
-          }
-        });
+            (ProviderChangeNotifier) provider -> {
+              upgradePlanLink.setVisible(false);
+            });
   }
 
   public ChatToolWindowTabbedPane getChatTabbedPane() {
@@ -119,43 +96,43 @@ public class ChatToolWindowPanel extends SimpleToolWindowPanel {
   private void initToolWindowPanel(Project project) {
     Runnable onAddNewTab = () -> {
       tabbedPane.addNewTab(new ChatToolWindowTabPanel(
-          project,
-          ConversationService.getInstance().startConversation(project)));
+              project,
+              ConversationService.getInstance().startConversation(project)));
       repaint();
       revalidate();
     };
 
     ApplicationManager.getApplication().invokeLater(() -> {
       setToolbar(new BorderLayoutPanel()
-          .addToLeft(createActionToolbar(project, tabbedPane, onAddNewTab).getComponent())
-          .addToRight(upgradePlanLink));
+              .addToLeft(createActionToolbar(project, tabbedPane, onAddNewTab).getComponent())
+              .addToRight(upgradePlanLink));
       setContent(new BorderLayoutPanel()
-          .addToCenter(tabbedPane)
-          .addToBottom(imageFileAttachmentNotification));
+              .addToCenter(tabbedPane)
+              .addToBottom(imageFileAttachmentNotification));
     });
   }
 
   private ActionToolbar createActionToolbar(
-      Project project,
-      ChatToolWindowTabbedPane tabbedPane,
-      Runnable onAddNewTab) {
+          Project project,
+          ChatToolWindowTabbedPane tabbedPane,
+          Runnable onAddNewTab) {
     var actionGroup = new DefaultCompactActionGroup("TOOLBAR_ACTION_GROUP", false);
     actionGroup.add(new CreateNewConversationAction(onAddNewTab));
     actionGroup.add(
-        new ClearChatWindowAction(() -> tabbedPane.resetCurrentlyActiveTabPanel(project)));
+            new ClearChatWindowAction(() -> tabbedPane.resetCurrentlyActiveTabPanel(project)));
     actionGroup.addSeparator();
     actionGroup.add(new OpenInEditorAction());
     actionGroup.addSeparator();
     actionGroup.add(new SelectedPersonaActionLink(project));
 
     var toolbar = ActionManager.getInstance()
-        .createActionToolbar("NAVIGATION_BAR_TOOLBAR", actionGroup, true);
+            .createActionToolbar("NAVIGATION_BAR_TOOLBAR", actionGroup, true);
     toolbar.setTargetComponent(this);
     return toolbar;
   }
-  
+
   private static class SelectedPersonaActionLink extends DumbAwareAction implements
-      CustomComponentAction {
+          CustomComponentAction {
 
     private final Project project;
 
@@ -165,14 +142,14 @@ public class ChatToolWindowPanel extends SimpleToolWindowPanel {
 
     private void showPromptsSettingsDialog() {
       ShowSettingsUtil.getInstance()
-          .showSettingsDialog(project, PromptsConfigurable.class);
+              .showSettingsDialog(project, PromptsConfigurable.class);
     }
 
     @Override
     @NotNull
     public JComponent createCustomComponent(
-        @NotNull Presentation presentation,
-        @NotNull String place) {
+            @NotNull Presentation presentation,
+            @NotNull String place) {
       var selectedPersona = getSelectedPersona();
       var personaName = selectedPersona.getName();
       if (personaName == null) {
@@ -194,8 +171,8 @@ public class ChatToolWindowPanel extends SimpleToolWindowPanel {
 
     @Override
     public void updateCustomComponent(
-        @NotNull JComponent component,
-        @NotNull Presentation presentation) {
+            @NotNull JComponent component,
+            @NotNull Presentation presentation) {
       if (component instanceof ActionLink actionLink) {
         var selectedPersona = getSelectedPersona();
         var personaName = selectedPersona.getName();
@@ -219,9 +196,9 @@ public class ChatToolWindowPanel extends SimpleToolWindowPanel {
 
     private PersonaPromptDetailsState getSelectedPersona() {
       return ApplicationManager.getApplication().getService(PromptsSettings.class)
-          .getState()
-          .getPersonas()
-          .getSelectedPersona();
+              .getState()
+              .getPersonas()
+              .getSelectedPersona();
     }
   }
 }

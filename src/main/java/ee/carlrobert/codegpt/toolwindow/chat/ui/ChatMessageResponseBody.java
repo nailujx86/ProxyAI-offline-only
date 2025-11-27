@@ -1,80 +1,50 @@
 package ee.carlrobert.codegpt.toolwindow.chat.ui;
 
-import static ee.carlrobert.codegpt.util.MarkdownUtil.convertMdToHtml;
-import static java.lang.String.format;
-import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
-
 import com.intellij.icons.AllIcons;
 import com.intellij.icons.AllIcons.General;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.ActionUpdateThread;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
-import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.AnimatedIcon;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.components.JBLabel;
-import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.components.BorderLayoutPanel;
 import ee.carlrobert.codegpt.CodeGPTBundle;
 import ee.carlrobert.codegpt.Icons;
-import ee.carlrobert.codegpt.actions.ActionType;
-import ee.carlrobert.codegpt.events.AnalysisCompletedEventDetails;
-import ee.carlrobert.codegpt.events.AnalysisFailedEventDetails;
-import ee.carlrobert.codegpt.events.CodeGPTEvent;
-import ee.carlrobert.codegpt.events.EventDetails;
-import ee.carlrobert.codegpt.events.WebSearchEventDetails;
-import ee.carlrobert.codegpt.settings.service.FeatureType;
-import ee.carlrobert.codegpt.settings.service.ModelSelectionService;
+import ee.carlrobert.codegpt.events.*;
 import ee.carlrobert.codegpt.settings.GeneralSettingsConfigurable;
-import ee.carlrobert.codegpt.settings.service.ServiceType;
-import ee.carlrobert.codegpt.telemetry.TelemetryAction;
 import ee.carlrobert.codegpt.toolwindow.chat.editor.ResponseEditorPanel;
 import ee.carlrobert.codegpt.toolwindow.chat.editor.actions.CopyAction;
 import ee.carlrobert.codegpt.toolwindow.chat.editor.header.DefaultHeaderPanel;
 import ee.carlrobert.codegpt.toolwindow.chat.editor.header.DiffHeaderPanel;
-import ee.carlrobert.codegpt.toolwindow.chat.parser.Code;
-import ee.carlrobert.codegpt.toolwindow.chat.parser.CodeEnd;
-import ee.carlrobert.codegpt.toolwindow.chat.parser.CompleteMessageParser;
-import ee.carlrobert.codegpt.toolwindow.chat.parser.ReplaceWaiting;
-import ee.carlrobert.codegpt.toolwindow.chat.parser.SearchReplace;
-import ee.carlrobert.codegpt.toolwindow.chat.parser.SearchWaiting;
-import ee.carlrobert.codegpt.toolwindow.chat.parser.Segment;
-import ee.carlrobert.codegpt.toolwindow.chat.parser.SseMessageParser;
-import ee.carlrobert.codegpt.toolwindow.chat.parser.Text;
-import ee.carlrobert.codegpt.toolwindow.chat.parser.Thinking;
+import ee.carlrobert.codegpt.toolwindow.chat.parser.*;
 import ee.carlrobert.codegpt.toolwindow.ui.ResponseBodyProgressPanel;
 import ee.carlrobert.codegpt.toolwindow.ui.WebpageList;
 import ee.carlrobert.codegpt.ui.ThoughtProcessPanel;
 import ee.carlrobert.codegpt.ui.UIUtil;
 import ee.carlrobert.codegpt.ui.hover.PsiLinkHoverPreview;
 import ee.carlrobert.codegpt.util.EditorUtil;
-import ee.carlrobert.codegpt.util.MarkdownUtil;
-import java.awt.BorderLayout;
-import java.util.Objects;
-import java.util.stream.Stream;
-import javax.swing.DefaultListModel;
-import javax.swing.JEditorPane;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextPane;
-import javax.swing.event.HyperlinkListener;
 import kotlin.jvm.Synchronized;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
+import javax.swing.event.HyperlinkListener;
+import java.awt.*;
+import java.util.Objects;
+import java.util.stream.Stream;
+
+import static ee.carlrobert.codegpt.util.MarkdownUtil.convertMdToHtml;
+import static java.lang.String.format;
+import static javax.swing.event.HyperlinkEvent.EventType.ACTIVATED;
 
 public class ChatMessageResponseBody extends JPanel {
 
@@ -90,7 +60,7 @@ public class ChatMessageResponseBody extends JPanel {
   private final ResponseBodyProgressPanel progressPanel = new ResponseBodyProgressPanel();
   private final JPanel loadingLabel = createLoadingPanel();
   private final JPanel contentPanel =
-      new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 4, true, false));
+          new JPanel(new VerticalFlowLayout(VerticalFlowLayout.TOP, 0, 4, true, false));
 
   private ResponseEditorPanel currentlyProcessedEditorPanel;
   private JEditorPane currentlyProcessedTextPane;
@@ -98,11 +68,11 @@ public class ChatMessageResponseBody extends JPanel {
 
   private JPanel createLoadingPanel() {
     return new BorderLayoutPanel()
-        .addToLeft(new JBLabel(
-            CodeGPTBundle.get("toolwindow.chat.loading"),
-            new AnimatedIcon.Default(),
-            JLabel.LEFT))
-        .withBorder(JBUI.Borders.empty(4, 0));
+            .addToLeft(new JBLabel(
+                    CodeGPTBundle.get("toolwindow.chat.loading"),
+                    new AnimatedIcon.Default(),
+                    JLabel.LEFT))
+            .withBorder(JBUI.Borders.empty(4, 0));
   }
 
   public ChatMessageResponseBody(Project project, boolean compact, Disposable parentDisposable) {
@@ -110,13 +80,13 @@ public class ChatMessageResponseBody extends JPanel {
   }
 
   public ChatMessageResponseBody(
-      Project project,
-      boolean readOnly,
-      boolean compact,
-      boolean webSearchIncluded,
-      boolean withProgress,
-      boolean withLoading,
-      Disposable parentDisposable) {
+          Project project,
+          boolean readOnly,
+          boolean compact,
+          boolean webSearchIncluded,
+          boolean withProgress,
+          boolean withLoading,
+          Disposable parentDisposable) {
     this.project = project;
     this.parentDisposable = parentDisposable;
     this.streamOutputParser = new SseMessageParser();
@@ -131,17 +101,6 @@ public class ChatMessageResponseBody extends JPanel {
 
     loadingLabel.setVisible(withLoading);
     add(loadingLabel, BorderLayout.SOUTH);
-
-    if (ModelSelectionService.getInstance().getServiceForFeature(FeatureType.CHAT) == ServiceType.PROXYAI) {
-      if (withProgress) {
-        contentPanel.add(progressPanel);
-      }
-
-      if (webSearchIncluded) {
-        webpageListPanel = createWebpageListPanel(webpageList);
-        contentPanel.add(webpageListPanel);
-      }
-    }
   }
 
   public ChatMessageResponseBody withResponse(@NotNull String response) {
@@ -177,21 +136,18 @@ public class ChatMessageResponseBody extends JPanel {
     displayErrorMessage(message, e -> {
       if (e.getEventType() == ACTIVATED) {
         ShowSettingsUtil.getInstance()
-            .showSettingsDialog(project, GeneralSettingsConfigurable.class);
+                .showSettingsDialog(project, GeneralSettingsConfigurable.class);
       }
     });
   }
 
   public void displayQuotaExceeded() {
     String message = "You exceeded your current quota, please check your plan and billing details, "
-        + "or <a href=\"#CHANGE_PROVIDER\">change</a> to a different LLM provider.";
+            + "or <a href=\"#CHANGE_PROVIDER\">change</a> to a different LLM provider.";
     displayErrorMessage(message, e -> {
       if (e.getEventType() == ACTIVATED) {
         ShowSettingsUtil.getInstance()
-            .showSettingsDialog(project, GeneralSettingsConfigurable.class);
-        TelemetryAction.IDE_ACTION.createActionMessage()
-            .property("action", ActionType.CHANGE_PROVIDER.name())
-            .send();
+                .showSettingsDialog(project, GeneralSettingsConfigurable.class);
       }
     });
   }
@@ -237,7 +193,7 @@ public class ChatMessageResponseBody extends JPanel {
     // Reset for the next incoming message
     prepareProcessingText(true);
     currentlyProcessedTextPane.setText(
-        "<html><p style=\"margin-top: 4px; margin-bottom: 8px;\">&#8205;</p></html>");
+            "<html><p style=\"margin-top: 4px; margin-bottom: 8px;\">&#8205;</p></html>");
 
     repaint();
     revalidate();
@@ -253,7 +209,7 @@ public class ChatMessageResponseBody extends JPanel {
       }
 
       String formattedMessage = format(
-          "<html><p style=\"margin-top: 4px; margin-bottom: 8px;\">%s</p></html>", message);
+              "<html><p style=\"margin-top: 4px; margin-bottom: 8px;\">%s</p></html>", message);
 
       if (currentlyProcessedTextPane == null) {
         currentlyProcessedTextPane = createTextPane(formattedMessage, false);
@@ -292,9 +248,9 @@ public class ChatMessageResponseBody extends JPanel {
 
   private ThoughtProcessPanel getExistingThoughtProcessPanel() {
     return (ThoughtProcessPanel) Stream.of(contentPanel.getComponents())
-        .filter(it -> it instanceof ThoughtProcessPanel)
-        .findFirst()
-        .orElse(null);
+            .filter(it -> it instanceof ThoughtProcessPanel)
+            .findFirst()
+            .orElse(null);
   }
 
   private void processResponse(Segment item, boolean caretVisible) {
@@ -383,7 +339,7 @@ public class ChatMessageResponseBody extends JPanel {
     hideCaret();
     currentlyProcessedTextPane = null;
     currentlyProcessedEditorPanel =
-        new ResponseEditorPanel(project, item, readOnly, compact, parentDisposable);
+            new ResponseEditorPanel(project, item, readOnly, compact, parentDisposable);
     contentPanel.add(currentlyProcessedEditorPanel);
     contentPanel.revalidate();
     contentPanel.repaint();
@@ -409,16 +365,16 @@ public class ChatMessageResponseBody extends JPanel {
 
   private void showWebDocsProgress() {
     progressPanel.updateProgressContainer(
-        CodeGPTBundle.get("chatMessageResponseBody.webDocs.startProgress.label"),
-        null
+            CodeGPTBundle.get("chatMessageResponseBody.webDocs.startProgress.label"),
+            null
     );
   }
 
   private void completeWebDocsProgress(EventDetails eventDetails) {
     if (eventDetails instanceof AnalysisCompletedEventDetails defaultEventDetails) {
       progressPanel.updateProgressContainer(
-          defaultEventDetails.getDescription(),
-          Icons.GreenCheckmark);
+              defaultEventDetails.getDescription(),
+              Icons.GreenCheckmark);
     }
   }
 
@@ -453,27 +409,27 @@ public class ChatMessageResponseBody extends JPanel {
 
   private void installPopupMenu(JTextPane textPane) {
     PopupHandler.installPopupMenu(textPane, new DefaultActionGroup(
-        new AnAction(
-            CodeGPTBundle.get("shared.copy"),
-            CodeGPTBundle.get("shared.copyToClipboard"),
-            AllIcons.Actions.Copy) {
+            new AnAction(
+                    CodeGPTBundle.get("shared.copy"),
+                    CodeGPTBundle.get("shared.copyToClipboard"),
+                    AllIcons.Actions.Copy) {
 
-          @Override
-          public @NotNull ActionUpdateThread getActionUpdateThread() {
-            return ActionUpdateThread.EDT;
-          }
+              @Override
+              public @NotNull ActionUpdateThread getActionUpdateThread() {
+                return ActionUpdateThread.EDT;
+              }
 
-          @Override
-          public void actionPerformed(@NotNull AnActionEvent event) {
-            textPane.copy();
-            CopyAction.showCopyBalloon(event);
-          }
+              @Override
+              public void actionPerformed(@NotNull AnActionEvent event) {
+                textPane.copy();
+                CopyAction.showCopyBalloon(event);
+              }
 
-          @Override
-          public void update(@NotNull AnActionEvent e) {
-            e.getPresentation().setEnabled(textPane.getSelectedText() != null);
-          }
-        }
+              @Override
+              public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(textPane.getSelectedText() != null);
+              }
+            }
     ), ActionPlaces.EDITOR_POPUP);
   }
 
@@ -482,7 +438,7 @@ public class ChatMessageResponseBody extends JPanel {
     title.setOpaque(false);
     title.setBorder(JBUI.Borders.empty(8, 0));
     title.add(new JBLabel(CodeGPTBundle.get("chatMessageResponseBody.webPages.title"))
-        .withFont(JBUI.Fonts.miniFont()), BorderLayout.LINE_START);
+            .withFont(JBUI.Fonts.miniFont()), BorderLayout.LINE_START);
     var listPanel = new JPanel(new BorderLayout());
     listPanel.add(webpageList, BorderLayout.LINE_START);
 

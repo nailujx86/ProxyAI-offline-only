@@ -69,7 +69,6 @@ dependencies {
         testFramework(TestFrameworkType.JUnit5)
     }
 
-    implementation(project(":codegpt-telemetry"))
     implementation(project(":codegpt-treesitter"))
 
     implementation(platform(libs.jackson.bom))

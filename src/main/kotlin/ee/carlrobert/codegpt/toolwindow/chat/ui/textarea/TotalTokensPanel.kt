@@ -194,8 +194,7 @@ class TotalTokensPanel(
     }
 
     private fun getIconToolTipText(html: String): String {
-        return if (ModelSelectionService.getInstance().getServiceForFeature(FeatureType.CHAT) != ServiceType.OPENAI) {
-            """
+        return """
             <html>
             <body style="margin: 0; padding: 0;">
             $html
@@ -207,9 +206,6 @@ class TotalTokensPanel(
             </body>
             </html>
             """.trimIndent()
-        } else {
-            "<html$html</html>"
-        }
     }
 
     private fun getLabelHtml(total: Int): String = "<html><small>Tokens: <strong>$total</strong></small></html>"

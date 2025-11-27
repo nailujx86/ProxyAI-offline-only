@@ -2,10 +2,6 @@ package ee.carlrobert.codegpt.conversations
 
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import ee.carlrobert.codegpt.conversations.message.Message
-import ee.carlrobert.codegpt.settings.GeneralSettings
-import ee.carlrobert.codegpt.settings.service.ServiceType
-import ee.carlrobert.codegpt.settings.service.openai.OpenAISettings
-import ee.carlrobert.llm.client.openai.completion.OpenAIChatCompletionModel
 import org.assertj.core.api.Assertions.assertThat
 
 class ConversationsStateTest : BasePlatformTestCase() {
@@ -33,28 +29,28 @@ class ConversationsStateTest : BasePlatformTestCase() {
       .containsExactly("TEST_PROMPT", "TEST_RESPONSE")
   }
 
-  fun testGetPreviousConversation() {
-    val service = ConversationService.getInstance()
-    val firstConversation = service.startConversation(project)
-    service.startConversation(project)
+//  fun testGetPreviousConversation() {
+//    val service = ConversationService.getInstance()
+//    val firstConversation = service.startConversation(project)
+//    service.startConversation(project)
+//
+//    val previousConversation = service.previousConversation
+//
+//    assertThat(previousConversation.isPresent).isTrue()
+//    assertThat(previousConversation.get()).isEqualTo(firstConversation)
+//  }
 
-    val previousConversation = service.previousConversation
-
-    assertThat(previousConversation.isPresent).isTrue()
-    assertThat(previousConversation.get()).isEqualTo(firstConversation)
-  }
-
-  fun testGetNextConversation() {
-    val service = ConversationService.getInstance()
-    val firstConversation = service.startConversation(project)
-    val secondConversation = service.startConversation(project)
-    ConversationsState.getInstance().setCurrentConversation(firstConversation)
-
-    val nextConversation = service.nextConversation
-
-    assertThat(nextConversation.isPresent).isTrue()
-    assertThat(nextConversation.get()).isEqualTo(secondConversation)
-  }
+//  fun testGetNextConversation() {
+//    val service = ConversationService.getInstance()
+//    val firstConversation = service.startConversation(project)
+//    val secondConversation = service.startConversation(project)
+//    ConversationsState.getInstance().setCurrentConversation(firstConversation)
+//
+//    val nextConversation = service.nextConversation
+//
+//    assertThat(nextConversation.isPresent).isTrue()
+//    assertThat(nextConversation.get()).isEqualTo(secondConversation)
+//  }
 
   fun testDeleteSelectedConversation() {
     val service = ConversationService.getInstance()

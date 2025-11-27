@@ -7,14 +7,9 @@ import ee.carlrobert.codegpt.settings.models.ModelRegistry
 import ee.carlrobert.codegpt.settings.models.ModelSettingsState
 import ee.carlrobert.codegpt.settings.service.FeatureType
 import ee.carlrobert.codegpt.settings.service.ServiceType
-import ee.carlrobert.codegpt.settings.service.anthropic.AnthropicSettings
-import ee.carlrobert.codegpt.settings.service.codegpt.CodeGPTServiceSettings
 import ee.carlrobert.codegpt.settings.service.custom.CustomServicesSettings
-import ee.carlrobert.codegpt.settings.service.google.GoogleSettings
 import ee.carlrobert.codegpt.settings.service.llama.LlamaSettings
 import ee.carlrobert.codegpt.settings.service.ollama.OllamaSettings
-import ee.carlrobert.codegpt.settings.service.openai.OpenAISettings
-import ee.carlrobert.llm.client.google.models.GoogleModel
 
 object LegacySettingsMigration {
 
@@ -50,36 +45,13 @@ object LegacySettingsMigration {
             val codeModel = getLegacyCodeModelForService(selectedService)
             setModelSelection(FeatureType.CODE_COMPLETION, codeModel, selectedService)
 
-            if (selectedService == ServiceType.PROXYAI) {
-                setModelSelection(FeatureType.NEXT_EDIT, ModelRegistry.MERCURY_CODER, ServiceType.PROXYAI)
-            } else {
-                setModelSelection(FeatureType.NEXT_EDIT, null, selectedService)
-            }
+            setModelSelection(FeatureType.NEXT_EDIT, null, selectedService)
         }
     }
 
     private fun getLegacyChatModelForService(serviceType: ServiceType): String {
         return try {
             when (serviceType) {
-                ServiceType.PROXYAI -> {
-                    val settings = service<CodeGPTServiceSettings>()
-                    settings.state.chatCompletionSettings.model ?: ModelRegistry.GEMINI_FLASH_2_5
-                }
-
-                ServiceType.OPENAI -> {
-                    OpenAISettings.getCurrentState().model ?: ModelRegistry.GPT_5
-                }
-
-                ServiceType.ANTHROPIC -> {
-                    AnthropicSettings.getCurrentState().model
-                        ?: ModelRegistry.CLAUDE_SONNET_4_20250514
-                }
-
-                ServiceType.GOOGLE -> {
-                    val settings = service<GoogleSettings>()
-                    settings.state.model ?: GoogleModel.GEMINI_2_5_PRO.code
-                }
-
                 ServiceType.OLLAMA -> {
                     val settings = service<OllamaSettings>()
                     settings.state.model ?: ModelRegistry.LLAMA_3_2
@@ -100,14 +72,6 @@ object LegacySettingsMigration {
                         .lastOrNull()
                         ?.takeIf { it.isNotBlank() } ?: "Default"
                 }
-
-                ServiceType.MISTRAL -> {
-                    ModelRegistry.DEVSTRAL_MEDIUM_2507
-                }
-
-                ServiceType.INCEPTION -> {
-                    ModelRegistry.MERCURY_CODER
-                }
             }
         } catch (e: Exception) {
             logger.warn("Failed to get legacy chat model for $serviceType", e)
@@ -118,23 +82,7 @@ object LegacySettingsMigration {
     private fun getLegacyCodeModelForService(serviceType: ServiceType): String? {
         return try {
             when (serviceType) {
-                ServiceType.PROXYAI -> {
-                    service<CodeGPTServiceSettings>().state.codeCompletionSettings.model
-                }
-
-                ServiceType.OPENAI -> {
-                    ModelRegistry.GPT_3_5_TURBO_INSTRUCT
-                }
-
-                ServiceType.ANTHROPIC -> {
-                    null
-                }
-
-                ServiceType.GOOGLE -> {
-                    null
-                }
-
-                ServiceType.OLLAMA -> {
+               ServiceType.OLLAMA -> {
                     service<OllamaSettings>().state.model
                 }
 
@@ -151,14 +99,6 @@ object LegacySettingsMigration {
                     service<CustomServicesSettings>().state.services
                         .map { it.name }
                         .lastOrNull() ?: ""
-                }
-
-                ServiceType.MISTRAL -> {
-                    ModelRegistry.CODESTRAL_LATEST
-                }
-
-                ServiceType.INCEPTION -> {
-                    ModelRegistry.MERCURY_CODER
                 }
             }
         } catch (e: Exception) {

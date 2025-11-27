@@ -25,12 +25,9 @@ import ee.carlrobert.codegpt.codecompletions.CompletionProgressNotifier
 import ee.carlrobert.codegpt.completions.AutoApplyParameters
 import ee.carlrobert.codegpt.completions.CompletionClientProvider
 import ee.carlrobert.codegpt.completions.CompletionRequestService
-import ee.carlrobert.codegpt.completions.factory.InceptionRequestFactory
 import ee.carlrobert.codegpt.settings.models.ModelSelection
 import ee.carlrobert.codegpt.settings.service.FeatureType
 import ee.carlrobert.codegpt.settings.service.ModelSelectionService
-import ee.carlrobert.codegpt.settings.service.ServiceType.INCEPTION
-import ee.carlrobert.codegpt.settings.service.ServiceType.PROXYAI
 import ee.carlrobert.codegpt.toolwindow.chat.editor.diff.DiffSyncManager
 import ee.carlrobert.codegpt.toolwindow.chat.editor.factory.ComponentFactory
 import ee.carlrobert.codegpt.toolwindow.chat.editor.factory.ComponentFactory.EXPANDED_KEY
@@ -150,20 +147,7 @@ class ResponseEditorPanel(
             val model = service<ModelSelectionService>().getModelForFeature(FeatureType.AUTO_APPLY)
             val originalCode = EditorUtil.getFileContent(params.destination)
             try {
-                val response = if (modelSelection.provider == INCEPTION) {
-                    val request = InceptionRequestFactory().createAutoApplyRequest(params)
-                    val responseContent = CompletionClientProvider.getInceptionClient()
-                        .getApplyEditCompletion(request)
-                        .choices[0]
-                        .message
-                        .content
-                    extractUpdatedCode(responseContent)
-                } else if (modelSelection.provider == PROXYAI) {
-                    val request = AutoApplyRequest(model, originalCode, params.source)
-                    CompletionClientProvider.getCodeGPTClient().applyChanges(request).mergedCode
-                } else {
-                    null
-                }
+                val response = null
 
                 if (!response.isNullOrBlank()) {
                     stateManager.transitionToDiffState(

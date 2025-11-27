@@ -10,7 +10,6 @@ import com.intellij.openapi.startup.ProjectActivity
 import ee.carlrobert.codegpt.actions.editor.EditorActionsUtil
 import ee.carlrobert.codegpt.settings.configuration.ConfigurationSettings
 import ee.carlrobert.codegpt.settings.configuration.ScreenshotPathDetector
-import ee.carlrobert.codegpt.settings.service.codegpt.CodeGPTService
 import ee.carlrobert.codegpt.toolwindow.chat.ui.textarea.AttachImageNotifier
 import ee.carlrobert.codegpt.ui.OverlayUtil
 import java.nio.file.Path
@@ -23,7 +22,6 @@ class CodeGPTProjectActivity : ProjectActivity {
 
     override suspend fun execute(project: Project) {
         EditorActionsUtil.refreshActions()
-        project.service<CodeGPTService>().syncUserDetailsAsync()
 
         if (!ApplicationManager.getApplication().isUnitTestMode
             && service<ConfigurationSettings>().state.checkForNewScreenshots

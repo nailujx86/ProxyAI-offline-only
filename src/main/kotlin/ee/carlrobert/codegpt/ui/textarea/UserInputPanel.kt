@@ -5,8 +5,6 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.application.ModalityState
-import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.components.service
@@ -23,14 +21,11 @@ import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.RightGap
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.IconUtil
-import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.AsyncProcessIcon
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import ee.carlrobert.codegpt.CodeGPTBundle
 import ee.carlrobert.codegpt.Icons
-import ee.carlrobert.codegpt.ReferencedFile
-import ee.carlrobert.codegpt.settings.models.ModelRegistry
 import ee.carlrobert.codegpt.settings.configuration.ChatMode
 import ee.carlrobert.codegpt.settings.service.FeatureType
 import ee.carlrobert.codegpt.settings.service.ModelSelectionService
@@ -522,31 +517,16 @@ class UserInputPanel @JvmOverloads constructor(
     }
 
     private fun isImageActionSupported(): Boolean {
-        val currentModel = ModelSelectionService.getInstance().getModelForFeature(FeatureType.CHAT)
+        ModelSelectionService.getInstance().getModelForFeature(FeatureType.CHAT)
         val currentService =
             ModelSelectionService.getInstance().getServiceForFeature(FeatureType.CHAT)
 
         return when (currentService) {
             ServiceType.CUSTOM_OPENAI,
-            ServiceType.ANTHROPIC,
-            ServiceType.GOOGLE,
-            ServiceType.OPENAI,
             ServiceType.OLLAMA -> true
 
-            ServiceType.PROXYAI -> isCodeGPTModelSupported(currentModel)
             else -> false
         }
-    }
-
-    private fun isCodeGPTModelSupported(modelCode: String): Boolean {
-        return modelCode in setOf(
-            ModelRegistry.GPT_4_1,
-            ModelRegistry.GPT_4_1_MINI,
-            ModelRegistry.GEMINI_PRO_2_5,
-            ModelRegistry.GEMINI_FLASH_2_5,
-            ModelRegistry.CLAUDE_4_5_SONNET,
-            ModelRegistry.CLAUDE_4_5_SONNET_THINKING
-        )
     }
 
     private fun updatePreferredSizeFromChildren() {

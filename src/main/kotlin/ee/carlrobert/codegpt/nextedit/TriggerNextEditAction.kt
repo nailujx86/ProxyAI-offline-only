@@ -26,28 +26,22 @@ class TriggerNextEditAction : EditorAction(Handler()), HintManagerImpl.ActionToI
         override fun doExecute(editor: Editor, caret: Caret?, dataContext: DataContext?) {
             val nextEditModelProvider = ModelSelectionService.getInstance()
                 .getServiceForFeature(FeatureType.NEXT_EDIT)
-            if (!listOf(
-                    ServiceType.PROXYAI,
-                    ServiceType.INCEPTION
-                ).contains(nextEditModelProvider)
-            ) {
-                return
-            }
+            return
 
-            try {
-                application.executeOnPooledThread {
-                    NextEditCoordinator.requestNextEdit(
-                        editor,
-                        editor.document.text,
-                        runReadAction { editor.caretModel.offset },
-                        false
-                    )
-                }
-            } catch (_: CancellationException) {
-                return
-            } catch (ex: Exception) {
-                logger.error("Error communicating with server: ${ex.message}")
-            }
+//            try {
+//                application.executeOnPooledThread {
+//                    NextEditCoordinator.requestNextEdit(
+//                        editor,
+//                        editor.document.text,
+//                        runReadAction { editor.caretModel.offset },
+//                        false
+//                    )
+//                }
+//            } catch (_: CancellationException) {
+//                return
+//            } catch (ex: Exception) {
+//                logger.error("Error communicating with server: ${ex.message}")
+//            }
         }
 
         override fun isEnabledForCaret(

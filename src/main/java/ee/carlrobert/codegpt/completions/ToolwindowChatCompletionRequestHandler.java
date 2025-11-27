@@ -4,7 +4,6 @@ import com.intellij.openapi.project.Project;
 import ee.carlrobert.codegpt.codecompletions.CompletionProgressNotifier;
 import ee.carlrobert.codegpt.settings.service.FeatureType;
 import ee.carlrobert.codegpt.settings.service.ModelSelectionService;
-import ee.carlrobert.codegpt.telemetry.TelemetryAction;
 import ee.carlrobert.llm.client.openai.completion.ErrorDetails;
 import okhttp3.sse.EventSource;
 
@@ -15,8 +14,8 @@ public class ToolwindowChatCompletionRequestHandler {
   private EventSource eventSource;
 
   public ToolwindowChatCompletionRequestHandler(
-      Project project,
-      CompletionResponseEventListener completionResponseEventListener) {
+          Project project,
+          CompletionResponseEventListener completionResponseEventListener) {
     this.project = project;
     this.completionResponseEventListener = completionResponseEventListener;
   }
@@ -26,10 +25,8 @@ public class ToolwindowChatCompletionRequestHandler {
       eventSource = startCall(callParameters);
     } catch (TotalUsageExceededException e) {
       completionResponseEventListener.handleTokensExceeded(
-          callParameters.getConversation(),
-          callParameters.getMessage());
-    } finally {
-      sendInfo(callParameters);
+              callParameters.getConversation(),
+              callParameters.getMessage());
     }
   }
 
@@ -44,17 +41,17 @@ public class ToolwindowChatCompletionRequestHandler {
       CompletionProgressNotifier.Companion.update(project, true);
       var featureType = callParameters.getFeatureType();
       var serviceType =
-          ModelSelectionService.getInstance().getServiceForFeature(FeatureType.CHAT);
+              ModelSelectionService.getInstance().getServiceForFeature(FeatureType.CHAT);
       var request = CompletionRequestFactory
-          .getFactoryForFeature(featureType)
-          .createChatRequest(callParameters);
+              .getFactoryForFeature(featureType)
+              .createChatRequest(callParameters);
       return CompletionRequestService.getInstance().getChatCompletionAsync(
-          request,
-          new ChatCompletionEventListener(
-              project,
-              callParameters,
-              completionResponseEventListener),
-          serviceType);
+              request,
+              new ChatCompletionEventListener(
+                      project,
+                      callParameters,
+                      completionResponseEventListener),
+              serviceType);
     } catch (Throwable ex) {
       handleCallException(ex);
       throw ex;
@@ -65,18 +62,10 @@ public class ToolwindowChatCompletionRequestHandler {
     var errorMessage = "Something went wrong";
     if (ex instanceof TotalUsageExceededException) {
       errorMessage =
-          "The length of the context exceeds the maximum limit that the model can handle. "
-              + "Try reducing the input message or maximum completion token size.";
+              "The length of the context exceeds the maximum limit that the model can handle. "
+                      + "Try reducing the input message or maximum completion token size.";
     }
     completionResponseEventListener.handleError(new ErrorDetails(errorMessage), ex);
   }
 
-  private void sendInfo(ChatCompletionParameters callParameters) {
-    var service = ModelSelectionService.getInstance()
-        .getServiceForFeature(FeatureType.CHAT);
-    TelemetryAction.COMPLETION.createActionMessage()
-        .property("conversationId", callParameters.getConversation().getId().toString())
-        .property("service", service.getCode().toLowerCase())
-        .send();
-  }
 }

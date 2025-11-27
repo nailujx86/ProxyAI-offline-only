@@ -5,9 +5,7 @@ import com.intellij.openapi.components.*
 import ee.carlrobert.codegpt.settings.service.FeatureType
 import ee.carlrobert.codegpt.settings.service.ModelChangeNotifier
 import ee.carlrobert.codegpt.settings.service.ServiceType
-import ee.carlrobert.codegpt.settings.service.ServiceType.PROXYAI
 import ee.carlrobert.codegpt.settings.service.custom.CustomServicesSettings
-import java.time.Month
 
 @Service
 @State(
@@ -63,7 +61,6 @@ class ModelSettings : SimplePersistentStateComponent<ModelSettingsState>(ModelSe
         migrateCustomOpenAIModelCodesToIds()
         migrateMissingProviderInformation()
         migrateEditCodeModel()
-        migrateProxyAIModels()
         notifyIfChanged(oldState, this.state)
     }
 
@@ -144,30 +141,6 @@ class ModelSettings : SimplePersistentStateComponent<ModelSettingsState>(ModelSe
         state.modelSelections["EDIT_CODE"]?.let {
             state.setModelSelection(FeatureType.INLINE_EDIT, it.model, it.provider!!)
             state.modelSelections.remove("EDIT_CODE")
-        }
-    }
-
-    private fun migrateProxyAIModels() {
-        listOf(FeatureType.AUTO_APPLY, FeatureType.CODE_COMPLETION, FeatureType.NEXT_EDIT).forEach {
-            val modelSelection = state.getModelSelection(it)
-            if (modelSelection?.provider == PROXYAI && modelSelection.model != ModelRegistry.MERCURY_CODER) {
-                setModelWithProvider(it, ModelRegistry.MERCURY_CODER, PROXYAI)
-            }
-        }
-        listOf(
-            FeatureType.CHAT,
-            FeatureType.COMMIT_MESSAGE,
-            FeatureType.LOOKUP,
-            FeatureType.INLINE_EDIT
-        ).forEach {
-            val modelSelection = state.getModelSelection(it)
-            if (modelSelection?.provider == PROXYAI) {
-                if (modelSelection.model == ModelRegistry.CLAUDE_4_SONNET) {
-                    setModelWithProvider(it, ModelRegistry.CLAUDE_4_5_SONNET, PROXYAI)
-                } else if (modelSelection.model == ModelRegistry.CLAUDE_4_SONNET_THINKING) {
-                    setModelWithProvider(it, ModelRegistry.CLAUDE_4_5_SONNET_THINKING, PROXYAI)
-                }
-            }
         }
     }
 

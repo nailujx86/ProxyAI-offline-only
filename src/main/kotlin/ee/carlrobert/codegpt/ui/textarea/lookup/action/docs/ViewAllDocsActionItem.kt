@@ -16,7 +16,7 @@ class ViewAllDocsActionItem : AbstractLookupActionItem() {
     override val displayName: String =
         "${CodeGPTBundle.get("suggestionActionItem.viewDocumentations.displayName")} →"
     override val icon = null
-    override val enabled = ModelSelectionService.getInstance().getServiceForFeature(FeatureType.CHAT) == ServiceType.PROXYAI
+    override val enabled = false;
 
     override fun execute(project: Project, userInputPanel: UserInputPanel) {
         service<ShowSettingsUtil>().showSettingsDialog(

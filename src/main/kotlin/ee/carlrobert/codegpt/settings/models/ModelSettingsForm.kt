@@ -123,7 +123,7 @@ class ModelSettingsForm(
         }
         
         val codeCompletionModelState = state.getModelSelection(FeatureType.CODE_COMPLETION)
-        val codeCompletionProvider = codeCompletionModelState?.provider ?: ServiceType.PROXYAI
+        val codeCompletionProvider = codeCompletionModelState?.provider ?: ServiceType.CUSTOM_OPENAI
         updateNextEditButtonState(codeCompletionProvider)
     }
 
@@ -202,8 +202,7 @@ class ModelSettingsForm(
 
     private fun updateNextEditButtonState(codeCompletionProvider: ServiceType) {
         val nextEditButton = modelButtons[FeatureType.NEXT_EDIT] ?: return
-        nextEditButton.isEnabled =
-            codeCompletionProvider == ServiceType.PROXYAI || codeCompletionProvider == ServiceType.INCEPTION
+        nextEditButton.isEnabled = false
     }
 
     fun isModified(): Boolean {

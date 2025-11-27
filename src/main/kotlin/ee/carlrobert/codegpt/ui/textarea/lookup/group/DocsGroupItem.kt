@@ -27,11 +27,7 @@ class DocsGroupItem(
         get() = enabled()
 
     fun enabled(): Boolean {
-        if (ModelSelectionService.getInstance().getServiceForFeature(FeatureType.CHAT) != ServiceType.PROXYAI) {
-            return false
-        }
-
-        return tagManager.getTags().none { it is DocumentationTagDetails }
+       return false;
     }
 
     override suspend fun getLookupItems(searchText: String): List<LookupActionItem> =

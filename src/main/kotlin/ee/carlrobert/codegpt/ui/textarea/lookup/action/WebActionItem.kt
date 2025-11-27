@@ -19,10 +19,7 @@ class WebActionItem(private val tagManager: TagManager) : AbstractLookupActionIt
         get() = enabled()
 
     fun enabled(): Boolean {
-        if (ModelSelectionService.getInstance().getServiceForFeature(FeatureType.CHAT) != ServiceType.PROXYAI) {
-            return false
-        }
-        return tagManager.getTags().none { it is WebTagDetails }
+        return false;
     }
 
     override fun execute(project: Project, userInputPanel: UserInputPanel) {

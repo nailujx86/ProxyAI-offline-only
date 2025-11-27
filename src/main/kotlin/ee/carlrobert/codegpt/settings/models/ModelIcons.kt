@@ -6,10 +6,7 @@ import javax.swing.Icon
 
 object ModelIcons {
     fun getIconForModel(model: ModelSelection): Icon? {
-        return when (model.provider) {
-            ServiceType.PROXYAI -> getProxyAIModelIcon(model.model)
-            else -> getIconForProvider(model.provider)
-        }
+        return getIconForProvider(model.provider)
     }
 
     fun getProxyAIModelIcon(modelId: String): Icon? {
@@ -32,15 +29,9 @@ object ModelIcons {
 
     fun getIconForProvider(provider: ServiceType): Icon? {
         return when (provider) {
-            ServiceType.PROXYAI -> Icons.CodeGPTModel
-            ServiceType.OPENAI -> Icons.OpenAI
-            ServiceType.ANTHROPIC -> Icons.Anthropic
-            ServiceType.GOOGLE -> Icons.Google
-            ServiceType.MISTRAL -> Icons.Mistral
             ServiceType.OLLAMA -> Icons.Ollama
             ServiceType.CUSTOM_OPENAI -> Icons.OpenAI
             ServiceType.LLAMA_CPP -> Icons.Llama
-            ServiceType.INCEPTION -> Icons.Inception
         }
     }
 }

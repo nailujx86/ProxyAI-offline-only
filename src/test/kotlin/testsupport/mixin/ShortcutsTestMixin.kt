@@ -8,43 +8,12 @@ import ee.carlrobert.codegpt.credentials.CredentialsStore.setCredential
 import ee.carlrobert.codegpt.settings.models.ModelSettings
 import ee.carlrobert.codegpt.settings.service.FeatureType
 import ee.carlrobert.codegpt.settings.service.ServiceType
-import ee.carlrobert.codegpt.settings.service.codegpt.CodeGPTServiceSettings
 import ee.carlrobert.codegpt.settings.service.llama.LlamaSettings
 import ee.carlrobert.codegpt.settings.service.ollama.OllamaSettings
-import ee.carlrobert.codegpt.settings.service.openai.OpenAISettings
 import ee.carlrobert.llm.client.google.models.GoogleModel
 import java.util.function.BooleanSupplier
 
 interface ShortcutsTestMixin {
-
-    fun useCodeGPTService(role: FeatureType = FeatureType.CHAT) {
-        setCredential(CodeGptApiKey, "TEST_API_KEY")
-        val modelSettings = service<ModelSettings>()
-        modelSettings.setModel(FeatureType.CHAT, "gpt-5-mini", ServiceType.PROXYAI)
-        modelSettings.setModel(FeatureType.CODE_COMPLETION, "mercury-coder", ServiceType.PROXYAI)
-        service<CodeGPTServiceSettings>().state.run {
-            codeCompletionSettings.codeCompletionsEnabled = true
-        }
-    }
-
-    fun useOpenAIService(chatModel: String? = "gpt-4o", featureType: FeatureType = FeatureType.CHAT) {
-        setCredential(OpenaiApiKey, "TEST_API_KEY")
-        val modelSettings = service<ModelSettings>()
-        
-        when (featureType) {
-            FeatureType.CODE_COMPLETION -> {
-                modelSettings.setModel(FeatureType.CODE_COMPLETION, "gpt-3.5-turbo-instruct", ServiceType.OPENAI)
-            }
-            else -> {
-                modelSettings.setModel(featureType, chatModel ?: "gpt-4o", ServiceType.OPENAI)
-                modelSettings.setModel(FeatureType.CODE_COMPLETION, "gpt-3.5-turbo-instruct", ServiceType.OPENAI)
-            }
-        }
-        
-        service<OpenAISettings>().state.run {
-            isCodeCompletionsEnabled = true
-        }
-    }
 
     fun useLlamaService(
         codeCompletionsEnabled: Boolean = false,
@@ -95,11 +64,6 @@ interface ShortcutsTestMixin {
                 modelSettings.setModel(FeatureType.CODE_COMPLETION, HuggingFaceModel.CODE_QWEN_2_5_3B_Q4_K_M.code, ServiceType.OLLAMA)
             }
         }
-    }
-
-    fun useGoogleService(role: FeatureType = FeatureType.CHAT) {
-        setCredential(GoogleApiKey, "TEST_API_KEY")
-        service<ModelSettings>().setModel(FeatureType.CHAT, GoogleModel.GEMINI_2_0_FLASH.code, ServiceType.GOOGLE)
     }
 
     fun waitExpecting(condition: BooleanSupplier?) {

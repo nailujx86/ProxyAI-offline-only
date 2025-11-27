@@ -6,7 +6,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import ee.carlrobert.codegpt.codecompletions.CompletionProgressNotifier;
 import ee.carlrobert.codegpt.events.CodeGPTEvent;
-import ee.carlrobert.codegpt.telemetry.TelemetryAction;
 import ee.carlrobert.llm.client.openai.completion.ErrorDetails;
 import ee.carlrobert.llm.completion.CompletionEventListener;
 import okhttp3.sse.EventSource;
@@ -14,16 +13,16 @@ import okhttp3.sse.EventSource;
 public class ChatCompletionEventListener implements CompletionEventListener<String> {
 
   private static final Logger LOG = Logger.getInstance(ChatCompletionEventListener.class);
-  
+
   private final Project project;
   private final ChatCompletionParameters callParameters;
   private final CompletionResponseEventListener eventListener;
   private final StringBuilder messageBuilder = new StringBuilder();
 
   public ChatCompletionEventListener(
-      Project project,
-      ChatCompletionParameters callParameters,
-      CompletionResponseEventListener eventListener) {
+          Project project,
+          ChatCompletionParameters callParameters,
+          CompletionResponseEventListener eventListener) {
     this.project = project;
     this.callParameters = callParameters;
     this.eventListener = eventListener;
@@ -63,12 +62,8 @@ public class ChatCompletionEventListener implements CompletionEventListener<Stri
 
   @Override
   public void onError(ErrorDetails error, Throwable ex) {
-    try {
-      callParameters.getConversation().addMessage(callParameters.getMessage());
-      eventListener.handleError(error, ex);
-    } finally {
-      sendError(error, ex);
-    }
+    callParameters.getConversation().addMessage(callParameters.getMessage());
+    eventListener.handleError(error, ex);
   }
 
   private void handleCompleted(StringBuilder messageBuilder) {
@@ -76,17 +71,4 @@ public class ChatCompletionEventListener implements CompletionEventListener<Stri
     eventListener.handleCompleted(messageBuilder.toString(), callParameters);
   }
 
-  private void sendError(ErrorDetails error, Throwable ex) {
-    var telemetryMessage = TelemetryAction.COMPLETION_ERROR.createActionMessage();
-    if ("insufficient_quota".equals(error.getCode())) {
-      telemetryMessage
-          .property("type", "USER")
-          .property("code", "INSUFFICIENT_QUOTA");
-    } else {
-      telemetryMessage
-          .property("conversationId", callParameters.getConversation().getId().toString())
-          .error(new RuntimeException(error.toString(), ex));
-    }
-    telemetryMessage.send();
-  }
 }

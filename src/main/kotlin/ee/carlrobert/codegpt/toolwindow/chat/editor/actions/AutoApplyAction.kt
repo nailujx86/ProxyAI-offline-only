@@ -9,13 +9,9 @@ import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.readText
 import com.intellij.ui.components.AnActionLink
 import com.intellij.util.ui.JBUI
 import ee.carlrobert.codegpt.CodeGPTBundle
-import ee.carlrobert.codegpt.settings.service.FeatureType
-import ee.carlrobert.codegpt.settings.service.ModelSelectionService
-import ee.carlrobert.codegpt.settings.service.ServiceType.INCEPTION
 import ee.carlrobert.codegpt.util.EditorUtil
 import javax.swing.JComponent
 

@@ -8,13 +8,9 @@ import ee.carlrobert.codegpt.codecompletions.CodeCompletionService
 import ee.carlrobert.codegpt.settings.service.FeatureType
 import ee.carlrobert.codegpt.settings.service.ModelSelectionService
 import ee.carlrobert.codegpt.settings.service.ServiceType.*
-import ee.carlrobert.codegpt.settings.service.codegpt.CodeGPTServiceSettings
 import ee.carlrobert.codegpt.settings.service.custom.CustomServicesSettings
 import ee.carlrobert.codegpt.settings.service.llama.LlamaSettings
 import ee.carlrobert.codegpt.settings.service.ollama.OllamaSettings
-import ee.carlrobert.codegpt.settings.service.openai.OpenAISettings
-import ee.carlrobert.codegpt.settings.service.mistral.MistralSettings
-import ee.carlrobert.codegpt.settings.service.inception.InceptionSettings
 
 abstract class CodeCompletionFeatureToggleActions(
     private val enableFeatureAction: Boolean
@@ -24,15 +20,6 @@ abstract class CodeCompletionFeatureToggleActions(
         val serviceType =
             service<ModelSelectionService>().getServiceForFeature(FeatureType.CODE_COMPLETION)
         when (serviceType) {
-            PROXYAI -> {
-                service<CodeGPTServiceSettings>().state.codeCompletionSettings.codeCompletionsEnabled =
-                    enableFeatureAction
-            }
-
-            OPENAI -> {
-                OpenAISettings.getCurrentState().isCodeCompletionsEnabled = enableFeatureAction
-            }
-
             LLAMA_CPP -> {
                 LlamaSettings.getCurrentState().isCodeCompletionsEnabled = enableFeatureAction
             }
@@ -46,18 +33,6 @@ abstract class CodeCompletionFeatureToggleActions(
                     .customServiceStateForFeatureType(FeatureType.CODE_COMPLETION)
                     .codeCompletionSettings.codeCompletionsEnabled = enableFeatureAction
             }
-
-            MISTRAL -> {
-                MistralSettings.getCurrentState().isCodeCompletionsEnabled = enableFeatureAction
-            }
-
-            INCEPTION -> {
-                service<InceptionSettings>().state.codeCompletionsEnabled = enableFeatureAction
-            }
-
-            ANTHROPIC,
-            GOOGLE -> {
-            }
         }
     }
 
@@ -68,16 +43,9 @@ abstract class CodeCompletionFeatureToggleActions(
             service<CodeCompletionService>().isCodeCompletionsEnabled(selectedService) == true
         e.presentation.isVisible = codeCompletionEnabled != enableFeatureAction
         e.presentation.isEnabled = when (selectedService) {
-            PROXYAI,
-            OPENAI,
             CUSTOM_OPENAI,
             LLAMA_CPP,
-            OLLAMA,
-            MISTRAL,
-            INCEPTION -> true
-
-            ANTHROPIC,
-            GOOGLE -> false
+            OLLAMA -> true
         }
     }
 

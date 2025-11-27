@@ -7,14 +7,12 @@ import com.intellij.openapi.diagnostic.thisLogger
 import ee.carlrobert.codegpt.settings.models.ModelRegistry
 import ee.carlrobert.codegpt.settings.models.ModelSelection
 import ee.carlrobert.codegpt.settings.models.ModelSettings
-import ee.carlrobert.llm.client.codegpt.PricingPlan
 
 @Service
 class ModelSelectionService {
 
     fun getModelSelectionForFeature(
-        featureType: FeatureType,
-        pricingPlan: PricingPlan? = null
+        featureType: FeatureType
     ): ModelSelection {
         return try {
             val modelSettings = service<ModelSettings>()
@@ -27,35 +25,31 @@ class ModelSelectionService {
                 }
             }
             
-            service<ModelRegistry>().getDefaultModelForFeature(featureType, pricingPlan)
+            service<ModelRegistry>().getDefaultModelForFeature(featureType)
         } catch (exception: Exception) {
             logger.warn(
                 "Error getting model selection for feature: $featureType, using default",
                 exception
             )
-            service<ModelRegistry>().getDefaultModelForFeature(featureType, pricingPlan)
+            service<ModelRegistry>().getDefaultModelForFeature(featureType)
         }
     }
 
     fun getServiceForFeature(featureType: FeatureType): ServiceType {
-        return getServiceForFeature(featureType, null)
-    }
-
-    fun getServiceForFeature(featureType: FeatureType, pricingPlan: PricingPlan?): ServiceType {
         return try {
-            getModelSelectionForFeature(featureType, pricingPlan).provider
+            getModelSelectionForFeature(featureType).provider
         } catch (exception: Exception) {
             logger.warn("Error getting service for feature: $featureType, using default", exception)
-            ServiceType.PROXYAI
+            ServiceType.CUSTOM_OPENAI
         }
     }
 
-    fun getModelForFeature(featureType: FeatureType, pricingPlan: PricingPlan? = null): String {
+    fun getModelForFeature(featureType: FeatureType): String {
         return try {
-            getModelSelectionForFeature(featureType, pricingPlan).model
+            getModelSelectionForFeature(featureType).model
         } catch (exception: Exception) {
             logger.warn("Error getting model for feature: $featureType, using default", exception)
-            service<ModelRegistry>().getDefaultModelForFeature(featureType, pricingPlan).model
+            service<ModelRegistry>().getDefaultModelForFeature(featureType).model
         }
     }
 

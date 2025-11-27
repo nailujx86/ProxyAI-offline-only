@@ -20,7 +20,7 @@ class DocActionItem(
 
     override val displayName = documentationDetails.name
     override val icon = AllIcons.Toolwindows.Documentation
-    override val enabled = ModelSelectionService.getInstance().getServiceForFeature(FeatureType.CHAT) == ServiceType.PROXYAI
+    override val enabled = false;
 
     override fun setPresentation(element: LookupElement, presentation: LookupElementPresentation) {
         super.setPresentation(element, presentation)

@@ -14,8 +14,6 @@ import ee.carlrobert.codegpt.CodeGPTBundle
 import ee.carlrobert.codegpt.completions.AutoApplyParameters
 import ee.carlrobert.codegpt.settings.service.FeatureType
 import ee.carlrobert.codegpt.settings.service.ModelSelectionService
-import ee.carlrobert.codegpt.settings.service.ServiceType.INCEPTION
-import ee.carlrobert.codegpt.settings.service.ServiceType.PROXYAI
 import ee.carlrobert.codegpt.toolwindow.chat.editor.ResponseEditorPanel
 import ee.carlrobert.codegpt.toolwindow.chat.editor.actions.*
 import ee.carlrobert.codegpt.util.EditorUtil
@@ -109,11 +107,8 @@ class DefaultHeaderPanel(config: HeaderConfig) : HeaderPanel(config) {
                 ModelSelectionService.getInstance()
                     .getModelSelectionForFeature(FeatureType.AUTO_APPLY);
             val params = AutoApplyParameters(editor.document.text, file)
-            if (listOf(PROXYAI, INCEPTION).any { it == modelSelection.provider }) {
-                responseEditorPanel.applyCode(modelSelection, params, this)
-            } else {
-                responseEditorPanel.applyCodeAsync(editor.document.text, file, editor, this)
-            }
+
+            responseEditorPanel.applyCodeAsync(editor.document.text, file, editor, this)
         } catch (e: Exception) {
             logger.error(e.message, e)
         }
